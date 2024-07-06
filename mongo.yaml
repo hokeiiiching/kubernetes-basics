@@ -1,0 +1,58 @@
+# Deployment & Service in 1 file for MongoDB
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-deployment
+  labels:  # Key/value pairs that are attached to K8s' resources. Identifier which should be meaningful and relevant to users
+    app: mongo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo
+  # Main Part: Blueprint for pods
+  # Why? Because deployement manages Pod
+  template: # configuration for Pod
+    metadata:
+      labels:
+        app: mongo
+    spec: 
+      containers:
+      - name: mongodb
+        image: mongo:5.0 # go to docker hub, mongo, tags
+        ports:
+        - containerPort: 27017 # check mongodb's port
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom: 
+            secretKeyRef:
+              name: mongo-secret
+              key: mongo-user
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom: 
+            secretKeyRef:
+              name: mongo-secret
+              key: mongo-password
+
+
+# Example labels
+# "release": "stable"
+# "release": "canary"
+# "env": "dev"
+# "env": "production"
+# "tier": "frontend"
+# "tier": "backend"
+
+# Not unique, so it helps us to identify pods
+--- # for multiple configurations within a file
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-service # endpoint
+spec:
+  selector:   # Select pods to forward the requests to 
+    app: mongo
+  ports:
+  - protocol: TCP
+    port: 27017 # service port
+    targetPort: 27017 # Which port to forward the requests to the pod? ContainerPort

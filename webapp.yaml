@@ -1,0 +1,65 @@
+# Deployment & Service in 1 file for webappDB
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp-deployment
+  labels:  # Key/value pairs that are attached to K8s' resources. Identifier which should be meaningful and relevant to users
+    app: webapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webapp
+  # Main Part: Blueprint for pods
+  # Why? Because deployement manages Pod
+  template: # configuration for Pod
+    metadata:
+      labels:
+        app: webapp
+    spec: 
+      containers:
+      - name: webapp
+        image: nanajanashia/k8s-demo-app:v1.0 # go to docker hub, webapp, tags
+        ports:
+        - containerPort: 3000 # check webappdb's port
+        env:
+        - name: USER_NAME
+          valueFrom:
+            secretKeyRef:
+              name: mongo-secret
+              key: mongo-user
+        - name: USER_PWD
+          valueFrom:
+            secretKeyRef:
+              name: mongo-secret
+              key: mongo-password
+        - name: DB_URL
+          valueFrom:
+            configMapKeyRef:
+              name: mongo-config
+              key: mongo-url
+
+
+# Example labels
+# "release": "stable"
+# "release": "canary"
+# "env": "dev"
+# "env": "production"
+# "tier": "frontend"
+# "tier": "backend"
+
+# Not unique, so it helps us to identify pods
+--- # for multiple configurations within a file
+apiVersion: v1
+kind: Service
+metadata:
+  name: webapp-service # endpoint
+spec:
+  type: NodePort # External Service
+  selector:   # Select pods to forward the requests to 
+    app: webapp
+  ports:
+  - protocol: TCP
+    port: 3000 # service port
+    targetPort: 3000 # Which port to forward the requests to the pod? ContainerPort
+    nodePort: 30100 # Expose the service on each Node's IP at a static port

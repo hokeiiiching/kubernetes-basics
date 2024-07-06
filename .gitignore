@@ -30,3 +30,6 @@
 *.exe
 *.out
 *.app
+
+# Ignore the mongo-secret.yaml file
+mongo-secret.yaml
