@@ -19,3 +19,10 @@ I will make the web application accessible externally from the browser.
 
 
 ### Learning Outcomes from project
+#### Handling of Secret
+In this project, I learnt to add my secret.yaml file to .gitignore (to prevent malicious access to the database's username and password). 
+
+More importantly, I learnt how to use Sealed Secrets to encrypt the secret.yaml file. The sealedsecret.yaml that appears in the git repo is completely safe to be viewed by the public, as it is encrypted.
+
+When I apply Sealed Secret to my cluster, the Sealed Secrets controller will decrypt it back into a regular Kubernetes Secret. This is done via:
+kubectl apply -f sealedsecret.yaml
